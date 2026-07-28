@@ -35,29 +35,46 @@ function safeLanguageName(code) {
 }
 
 export default function MovieDetailModal({ movieId, onClose }) {
-  const [currentId, setCurrentId] = useState(movieId)
+  // A single stack drives navigation, so "back" always retraces the exact
+  // path taken - movie -> cast -> movie -> cast - rather than two separate
+  // histories that could skip steps.
+  const [stack, setStack] = useState([{ type: 'movie', id: movieId }])
   const [movie, setMovie] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [similar, setSimilar] = useState([])
-  const [history, setHistory] = useState([])
-  const [selectedPersonId, setSelectedPersonId] = useState(null)
   const scrollRef = useRef(null)
   const { toggleWatchlist, toggleFavorite, isInWatchlist, isInFavorites, isSignedIn } = useLibrary()
 
-  const handleSelectSimilar = (m) => {
-    setHistory((prev) => [...prev, currentId])
-    setCurrentId(m.id)
+  const top = stack[stack.length - 1]
+  const selectedPersonId = top.type === 'person' ? top.id : null
+
+  // The movie currently shown underneath - the nearest 'movie' entry
+  // scanning down from the top of the stack (a person entry always
+  // sits on top of some movie).
+  const activeMovieId = (() => {
+    for (let i = stack.length - 1; i >= 0; i--) {
+      if (stack[i].type === 'movie') return stack[i].id
+    }
+    return movieId
+  })()
+
+  const openMovie = (id) => {
+    setStack((prev) => [...prev, { type: 'movie', id }])
     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })
   }
 
-  const handleBack = () => {
-    if (history.length === 0) return
-    const prevId = history[history.length - 1]
-    setHistory((h) => h.slice(0, -1))
-    setCurrentId(prevId)
+  const openPerson = (id) => {
+    setStack((prev) => [...prev, { type: 'person', id }])
     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })
   }
+
+  const goBack = () => {
+    setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+  }
+
+  const handleSelectSimilar = (m) => openMovie(m.id)
 
   useEffect(() => {
     let cancelled = false
@@ -65,7 +82,7 @@ export default function MovieDetailModal({ movieId, onClose }) {
     setError(null)
     setMovie(null)
 
-    Promise.all([getMovieDetails(currentId), getSimilarMovies(currentId)])
+    Promise.all([getMovieDetails(activeMovieId), getSimilarMovies(activeMovieId)])
       .then(([details, similarRes]) => {
         if (!cancelled) {
           setMovie(details)
@@ -81,7 +98,7 @@ export default function MovieDetailModal({ movieId, onClose }) {
     return () => {
       cancelled = true
     }
-  }, [currentId])
+  }, [activeMovieId])
 
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
@@ -104,10 +121,10 @@ export default function MovieDetailModal({ movieId, onClose }) {
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 md:px-6 py-3 bg-paper-surface dark:bg-ink-soft border-b border-ink-line/40 dark:border-ink-line md:rounded-t-md">
           <div className="flex items-center gap-2 min-w-0">
-            {history.length > 0 && (
+            {stack.length > 1 && (
               <button
-                onClick={handleBack}
-                aria-label="Back to previous movie"
+                onClick={goBack}
+                aria-label="Back"
                 className="w-8 h-8 shrink-0 rounded-md flex items-center justify-center hover:bg-ink/10 dark:hover:bg-paper/10 transition-colors"
               >
                 <ChevronLeft size={20} />
@@ -254,7 +271,7 @@ export default function MovieDetailModal({ movieId, onClose }) {
                   {cast.map((actor) => (
                     <button
                       key={actor.cast_id ?? actor.id}
-                      onClick={() => setSelectedPersonId(actor.id)}
+                      onClick={() => openPerson(actor.id)}
                       className="shrink-0 w-24 text-center text-left"
                     >
                       <img
@@ -293,8 +310,8 @@ export default function MovieDetailModal({ movieId, onClose }) {
       {selectedPersonId && (
         <CastDetailModal
           personId={selectedPersonId}
-          onClose={() => setSelectedPersonId(null)}
-          onSelectMovie={(m) => handleSelectSimilar(m)}
+          onClose={goBack}
+          onSelectMovie={(m) => openMovie(m.id)}
         />
       )}
     </div>

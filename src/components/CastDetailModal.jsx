@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { ChevronLeft, Calendar, MapPin, Briefcase } from 'lucide-react'
 import { getPersonDetails, posterUrl } from '../api/tmdb'
@@ -143,10 +142,7 @@ export default function CastDetailModal({ personId, onClose, onSelectMovie }) {
                     <MovieCard
                       key={m.id}
                       movie={m}
-                      onSelect={(movie) => {
-                        onClose()
-                        onSelectMovie && onSelectMovie(movie)
-                      }}
+                      onSelect={(movie) => onSelectMovie && onSelectMovie(movie)}
                     />
                   ))}
                 </div>
