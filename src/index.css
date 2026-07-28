@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-paper text-ink font-body antialiased transition-colors duration-300;
+  }
+  html.dark body {
+    @apply bg-ink text-paper;
+  }
+}
+
+@layer utilities {
+  .film-holes {
+    background-image: radial-gradient(circle, currentColor 2.5px, transparent 2.6px);
+    background-size: 100% 28px;
+    background-position: center;
+  }
+  .marquee-text {
+    font-family: inherit;
+    font-weight: 600;
+    letter-spacing: normal;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gold/40 rounded-full;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .card-poster {
+    aspect-ratio: 2 / 3;
+  }
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
