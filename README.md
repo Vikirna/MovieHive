@@ -2,7 +2,7 @@
 
 A movie discovery web app built with React and the TMDB API. Browse trending titles, search across thousands of movies, filter by genre, and save favorites or a watchlist to your account.
 
-Live app: https://movie-hive-git-main-vikirna03-6019s-projects.vercel.app/
+Live app: https://movie-hive-ruby.vercel.app/
 
 ## Features
 
