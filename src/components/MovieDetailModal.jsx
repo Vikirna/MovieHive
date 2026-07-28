@@ -229,14 +229,20 @@ export default function MovieDetailModal({ movieId, onClose }) {
                 <h3 className="font-semibold mt-6 mb-2">Top Cast</h3>
                 <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-1">
                   {cast.map((actor) => (
-                    <div key={actor.cast_id ?? actor.id} className="shrink-0 w-20 text-center">
+                    <div key={actor.cast_id ?? actor.id} className="shrink-0 w-24 text-center">
                       <img
                         src={posterUrl(actor.profile_path, 'w185') || CAST_FALLBACK}
                         alt={actor.name}
-                        className="w-20 h-24 object-cover rounded-md bg-ink-line/40 mb-1"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null
+                          e.currentTarget.src = CAST_FALLBACK
+                        }}
+                        className="w-24 h-28 object-cover rounded-md bg-ink-line/40 mb-1"
                       />
-                      <p className="text-xs font-medium truncate">{actor.name}</p>
-                      <p className="text-[11px] text-ink/50 dark:text-paper/50 truncate">{actor.character}</p>
+                      <p className="text-xs font-medium leading-snug line-clamp-2">{actor.name}</p>
+                      <p className="text-[11px] text-ink/50 dark:text-paper/50 leading-snug line-clamp-2">
+                        {actor.character}
+                      </p>
                     </div>
                   ))}
                 </div>
