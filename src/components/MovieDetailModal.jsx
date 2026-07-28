@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Star, Bookmark, Heart, Clock, Calendar, Globe } from 'lucide-react'
+import { X, ChevronLeft, Star, Bookmark, Heart, Clock, Calendar, Globe } from 'lucide-react'
 import { getMovieDetails, getSimilarMovies, posterUrl } from '../api/tmdb'
 import { useLibrary } from '../context/LibraryContext'
 import MovieCard from './MovieCard'
+import CastDetailModal from './CastDetailModal'
 
 const languageNames = new Intl.DisplayNames(['en'], { type: 'language' })
 
@@ -39,11 +40,22 @@ export default function MovieDetailModal({ movieId, onClose }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [similar, setSimilar] = useState([])
+  const [history, setHistory] = useState([])
+  const [selectedPersonId, setSelectedPersonId] = useState(null)
   const scrollRef = useRef(null)
   const { toggleWatchlist, toggleFavorite, isInWatchlist, isInFavorites, isSignedIn } = useLibrary()
 
   const handleSelectSimilar = (m) => {
+    setHistory((prev) => [...prev, currentId])
     setCurrentId(m.id)
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+  }
+
+  const handleBack = () => {
+    if (history.length === 0) return
+    const prevId = history[history.length - 1]
+    setHistory((h) => h.slice(0, -1))
+    setCurrentId(prevId)
     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })
   }
 
@@ -91,7 +103,18 @@ export default function MovieDetailModal({ movieId, onClose }) {
         className="relative w-full md:max-w-2xl md:my-auto bg-paper-surface dark:bg-ink-soft md:rounded-md min-h-full md:min-h-0"
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 md:px-6 py-3 bg-paper-surface dark:bg-ink-soft border-b border-ink-line/40 dark:border-ink-line md:rounded-t-md">
-          <h2 className="font-semibold truncate">{movie?.title || 'Movie details'}</h2>
+          <div className="flex items-center gap-2 min-w-0">
+            {history.length > 0 && (
+              <button
+                onClick={handleBack}
+                aria-label="Back to previous movie"
+                className="w-8 h-8 shrink-0 rounded-md flex items-center justify-center hover:bg-ink/10 dark:hover:bg-paper/10 transition-colors"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
+            <h2 className="font-semibold truncate">{movie?.title || 'Movie details'}</h2>
+          </div>
           <button
             onClick={onClose}
             aria-label="Close movie details"
@@ -229,7 +252,11 @@ export default function MovieDetailModal({ movieId, onClose }) {
                 <h3 className="font-semibold mt-6 mb-2">Top Cast</h3>
                 <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-1">
                   {cast.map((actor) => (
-                    <div key={actor.cast_id ?? actor.id} className="shrink-0 w-24 text-center">
+                    <button
+                      key={actor.cast_id ?? actor.id}
+                      onClick={() => setSelectedPersonId(actor.id)}
+                      className="shrink-0 w-24 text-center text-left"
+                    >
                       <img
                         src={posterUrl(actor.profile_path, 'w185') || CAST_FALLBACK}
                         alt={actor.name}
@@ -243,7 +270,7 @@ export default function MovieDetailModal({ movieId, onClose }) {
                       <p className="text-[11px] text-ink/50 dark:text-paper/50 leading-snug line-clamp-2">
                         {actor.character}
                       </p>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </>
@@ -262,6 +289,14 @@ export default function MovieDetailModal({ movieId, onClose }) {
           </div>
         )}
       </div>
+
+      {selectedPersonId && (
+        <CastDetailModal
+          personId={selectedPersonId}
+          onClose={() => setSelectedPersonId(null)}
+          onSelectMovie={(m) => handleSelectSimilar(m)}
+        />
+      )}
     </div>
   )
 }

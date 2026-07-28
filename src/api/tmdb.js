@@ -52,16 +52,12 @@ export function getMovieDetails(id) {
   })
 }
 
-export async function getSimilarMovies(id, page = 1) {
-  const [similar, recommendations] = await Promise.all([
-    tmdbFetch(`/movie/${id}/similar`, { page }),
-    tmdbFetch(`/movie/${id}/recommendations`, { page }),
-  ])
+export function getSimilarMovies(id, page = 1) {
+  return tmdbFetch(`/movie/${id}/similar`, { page })
+}
 
-  const combined = [...recommendations.results, ...similar.results]
-  const unique = combined.filter(
-    (movie, index, arr) => arr.findIndex((m) => m.id === movie.id) === index
-  )
-
-  return { results: unique }
+export function getPersonDetails(id) {
+  return tmdbFetch(`/person/${id}`, {
+    append_to_response: 'combined_credits',
+  })
 }
