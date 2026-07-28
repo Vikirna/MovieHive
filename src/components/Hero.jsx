@@ -53,7 +53,11 @@ export default function Hero({ movie, onSelectMovie }) {
           </>
         ) : (
           <>
-            <h1 className="marquee-text text-3xl md:text-5xl text-ink dark:text-paper leading-tight">
+            <h1
+              className={`marquee-text text-ink dark:text-paper leading-tight line-clamp-2 break-words ${
+                movie.title.length > 28 ? 'text-2xl md:text-4xl' : 'text-3xl md:text-5xl'
+              }`}
+            >
               {movie.title}
             </h1>
 
